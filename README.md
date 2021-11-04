@@ -3,6 +3,8 @@ Twitch chat bot to scrape dustloop to a local sqlite3 database, and then retriev
 
 Uses twitchio for bot functions and bs4 (Beautiful Soup) to scrape the web.
 
+If you want me to add my instance to your channel (user: whattheBOTdoin) just add me on discord and ask: Avaren#3379
+
 
 ## Functionality
 
