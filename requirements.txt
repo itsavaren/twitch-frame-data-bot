@@ -1,0 +1,4 @@
+twitchio
+requests
+bs4
+lxml

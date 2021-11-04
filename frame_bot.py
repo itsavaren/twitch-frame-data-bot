@@ -97,18 +97,16 @@ class Bot(commands.Bot):
             await ctx.send('Madroctos: @RyanHunter !ryan how does it geel')
 
     @commands.command()
-    async def fd(self, ctx: commands.Context, character, move):
+    async def fd(self, ctx: commands.Context, character, move, detail=None):
         # if ctx.author.is_mod or ctx.author.name == 'avaren':
-        raw = char_select(character)
-        urlparsed = raw.replace(" ","_")
-        sqlparsed = urlparsed.replace('-','_').lower()
-        await ctx.send(f'{raw} ' + get_move_data(sqlparsed, move.upper()))
+        char = char_select(character)
+        await ctx.send(f'{char} ' + get_move_data(char, move.lower(), detail))
 
     @commands.command()
     async def fdupdate(self, ctx: commands.Context):
         if ctx.author.is_mod or ctx.author.name == 'avaren':
             await ctx.send('scraping.')
-            full_scrape()
+            scrape_data()
             await ctx.send('scraped.')
         
 
