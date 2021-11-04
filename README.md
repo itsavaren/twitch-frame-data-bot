@@ -3,17 +3,6 @@ Twitch chat bot to scrape dustloop to a local sqlite3 database, and then retriev
 
 Uses twitchio for bot functions and bs4 (Beautiful Soup) to scrape the web.
 
-## Quick Start
-
-* Download everything.
-* Install python if needed from https://www.python.org/downloads/
-* Install twitchio and bs4
-* Go to www.twitchtokengenerator.com and connect to your bot account.  save client key in a file in the directory with the script called token.txt
-* run the bot in the command line using the following format: py scriptname.py [command prefix] [any number of channels separated by spaces]
-* example launch command: `py parity_bot.py ! avaren letsdaze_` will join the bot to twitch channel avaren and letsdaze_ with the command prefix !
-
-
-
 
 ## Functionality
 
