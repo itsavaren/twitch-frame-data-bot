@@ -26,7 +26,7 @@ Also some other stuff related to ryan
 
 ## Normal Chatter Commands
 
-- **!fd [character] [move name or input]** searches the character database for a move with the query term as a partial or full match to an input or move name.  Returns the startup, onhit, and onblock stats of the move.
+- **!fd [character] [move name or input] [stat or 'detail']** searches the character database for a move with the query term as a partial or full match to an input or move name.  Returns the startup, onhit, and onblock stats of the move.  Adding a stat will pull for that stat specifically (onhit, recovery, etc) or adding 'detail' will output the full data of the move.**
 - **!troy** woof
 - **!miso** also woof
 
