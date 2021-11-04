@@ -29,6 +29,9 @@ def scrape_data():
 
     for data_row in data_rows:
         move_data = [data.text.lower() for data in data_row.find_all("td")]
+        move_data = [data.replace(' level ', '.') for data in move_data]
+        move_data = [data.replace(' br', '.br') for data in move_data]
+        move_data = [data.replace('di ', 'di.') for data in move_data]
         move_list.append(move_data)
 
     move_list.pop(0)
