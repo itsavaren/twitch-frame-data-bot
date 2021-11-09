@@ -21,6 +21,10 @@ Also some other stuff related to ryan
 
 Note on !fd:  for level 1/2/3 of nago/goldlewis moves, append .1 .2 .3, or .br to the input(eg: 5h.2 for level 2 5h). For Ky dragon install moves, prepend di. to the input (eg: di.623s).
 
+- **!fd help** for format help and examples.
+
+- **!fdreadme** to get a link to this readme page.
+
 - **!troy** woof
 - **!miso** also woof
 
