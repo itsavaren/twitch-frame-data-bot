@@ -46,6 +46,4 @@ Measures time between RyanHunter's first chat of the day and the first chatter t
 
 Implement better handling of queries with multiple results.  Currently prints the first result found.
 
-Refactor move data persistence for easier manipulation by custom query modifiers, eg. if someone wants to ask for the damage of a move !fd character move damage would return the standard stats + damage.  adding detailed would return the entire list of move data.
-
 add common alternative names for moves and look for those if nothing else found, eg 'hair car', 'dp' etc.
