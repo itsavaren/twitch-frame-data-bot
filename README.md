@@ -44,6 +44,4 @@ Measures time between RyanHunter's first chat of the day and the first chatter t
 
 # To Do:
 
-Implement better handling of queries with multiple results.  Currently prints the first result found.
-
 add common alternative names for moves and look for those if nothing else found, eg 'hair car', 'dp' etc.
