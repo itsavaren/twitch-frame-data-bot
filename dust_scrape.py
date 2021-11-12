@@ -3,12 +3,6 @@ from bs4 import BeautifulSoup
 from dust_db import *
 
 
-def char_select(search_term):
-    roster_list = ['anji mito', 'axl low', 'chipp zanuff', 'faust', 'giovanna', 'goldlewis dickinson', 'i-no', 'jack-o', 'ky kiske', 'leo whitefang', 'may', 'millia rage', 'nagoriyuki', 'potemkin', 'ramlethal valentine', 'sol badguy', 'zato-1']
-    result = [match for match in roster_list if search_term.lower() in match]
-    return result[0]
-
-
 def scrape_data():
     files = glob.glob('./db/*')
     for f in files:

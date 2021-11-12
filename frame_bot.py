@@ -19,16 +19,17 @@ from dust_scrape import *
 try:
     set_prefix = sys.argv[1]
 except IndexError:
-    print('incorrect arguments')
+    print('no arguments, setting prefix to !')
+    set_prefix = '!'
 
 
-channel_names = []
+channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe']
 
 if sys.argv[2:]:
     for arg in sys.argv[2:]:
         channel_names.append(arg)
 else:
-    print('incorrect arguments')
+    print('no additional channels')
 
 
 print(f'Joining twitch channels {", ".join(channel_names)} with {set_prefix} set as command prefix.')
@@ -63,6 +64,7 @@ class Bot(commands.Bot):
                 start = time.time()
         await self.handle_commands(message)
 
+
     @commands.command()
     async def hello(self, ctx: commands.Context):
         await ctx.send(f'Hello {ctx.author.name}.')
@@ -96,11 +98,16 @@ class Bot(commands.Bot):
         if ctx.author.name == 'ryanhunter':
             await ctx.send('Madroctos: @RyanHunter !ryan how does it geel')
 
+    # @commands.command()
+    # async def fd(self, ctx: commands.Context, character, move=None, detail=None):
+    #     if character == 'help':
+    #         await ctx.send(f'Format: !fd [character(partial ok)] [move input or name] [specific stat OR "detail"(optional)] eg: !fd gio 2d, !fd axl 5k detail, !fd ky 6p recovery.  Try !fdreadme for a link to full documentation.')
+    #     char = char_select(character)
+    #     await ctx.send(get_move_data(char, move.lower(), detail))
+
     @commands.command()
-    async def fd(self, ctx: commands.Context, character, move, detail=None):
-        # if ctx.author.is_mod or ctx.author.name == 'avaren':
-        char = char_select(character)
-        await ctx.send(f'{char} ' + get_move_data(char, move.lower(), detail))
+    async def fd(self, ctx: commands.Context, *, full_message = None):
+        await ctx.send(parse_move(full_message))
 
     @commands.command()
     async def fdupdate(self, ctx: commands.Context):
@@ -108,8 +115,22 @@ class Bot(commands.Bot):
             await ctx.send('scraping.')
             scrape_data()
             await ctx.send('scraped.')
-        
 
+    @commands.command()
+    async def fdreadme(self, ctx: commands.Context):
+        if ctx.author.is_mod or ctx.author.name == 'avaren':
+            await ctx.send('Visit https://github.com/itsavaren/strive-frame-data-bot for documentation.') 
+        
+    @commands.command()
+    async def weird(self, ctx: commands.Context):
+        if ctx.author.is_mod:
+            await ctx.send("There's a good kind of weird, and a bad kind of weird. Stick to the good kind.")
+
+    @commands.command()
+    async def pokiw(self, ctx: commands.Context):
+        if ctx.author.name in ['avaren','madroctos','voidashe']:
+            await ctx.send("pokiW")
+        
 
 
 
