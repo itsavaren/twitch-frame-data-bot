@@ -2,14 +2,14 @@
 from twitchio.ext import commands
 import sys, json, time
 from datetime import date
+
+from googletrans import Translator, constants
+from pprint import pprint
+
 from dust_db import *
 from dust_scrape import *
-
-
-##################################################################################
-#GOOGLE SHEETS CONNECTION
-##################################################################################
-
+from definitions import *
+from translate import translate
 
 
 ##################################################################################
@@ -22,8 +22,7 @@ except IndexError:
     print('no arguments, setting prefix to !')
     set_prefix = '!'
 
-
-channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe']
+channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe','abusywizard']
 
 if sys.argv[2:]:
     for arg in sys.argv[2:]:
@@ -39,6 +38,8 @@ with open('token.txt') as fp:
 
 with open('ryan.json') as fp:
     ryan_data = json.load(fp)
+
+fish_deaths = 0
 
 ##################################################################################
 #BOT INITIALIZATION
@@ -58,7 +59,7 @@ class Bot(commands.Bot):
             return
         if message.content.startswith(set_prefix):
             print(f'{message.author.name}: {message.content}')
-        if message.author.name == 'ryanhunter':
+        if message.author.name == 'ryanhunter' and message.channel.name == 'sajam':
             today = str(date.today())
             if today != ryan_data['date']:
                 start = time.time()
@@ -83,38 +84,53 @@ class Bot(commands.Bot):
     @commands.command()
     async def ryan(self, ctx: commands.Context):
         global start, ryan_data
-        if 'start' in globals():
-            end = time.time()
-            elapsed = end - start
-            await ctx.send(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
-            print(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
-            ryan_data['date'] = str(date.today())
-            with open('ryan.json', 'w') as fp:
-                json.dump(ryan_data, fp, indent = 4)
-            del start
+        if ctx.channel.name == 'sajam':
+            if 'start' in globals():
+                end = time.time()
+                elapsed = end - start
+                await ctx.send(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
+                print(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
+                ryan_data['date'] = str(date.today())
+                with open('ryan.json', 'w') as fp:
+                    json.dump(ryan_data, fp, indent = 4)
+                del start
 
     @commands.command()
     async def geel(self, ctx: commands.Context):
-        if ctx.author.name == 'ryanhunter':
-            await ctx.send('Madroctos: @RyanHunter !ryan how does it geel')
-
-    # @commands.command()
-    # async def fd(self, ctx: commands.Context, character, move=None, detail=None):
-    #     if character == 'help':
-    #         await ctx.send(f'Format: !fd [character(partial ok)] [move input or name] [specific stat OR "detail"(optional)] eg: !fd gio 2d, !fd axl 5k detail, !fd ky 6p recovery.  Try !fdreadme for a link to full documentation.')
-    #     char = char_select(character)
-    #     await ctx.send(get_move_data(char, move.lower(), detail))
+        if ctx.author.name in ['ryanhunter','avaren']:
+            await ctx.send('"Madroctos: @RyanHunter !ryan how does it geel"')
 
     @commands.command()
     async def fd(self, ctx: commands.Context, *, full_message = None):
-        await ctx.send(parse_move(full_message))
+        if 'update' in full_message and ctx.author.name != 'avaren':
+            return
+        if full_message.split()[0] == 'help':
+            await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
+            return
+        await ctx.send(parse_move('ggst', full_message))
+
+    @commands.command()
+    async def bbfd(self, ctx: commands.Context, *, full_message = None):
+        if 'update' in full_message and ctx.author.name != 'avaren':
+            return
+        if full_message.split()[0] == 'help':
+            await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
+            return
+        await ctx.send(parse_move('bbcf', full_message))
 
     @commands.command()
     async def fdupdate(self, ctx: commands.Context):
         if ctx.author.is_mod or ctx.author.name == 'avaren':
-            await ctx.send('scraping.')
-            scrape_data()
-            await ctx.send('scraped.')
+            await ctx.send('Scraping GG Strive Data from dustloop to local database.')
+            scrape_data('ggst')
+            await ctx.send('Database refreshed.')
+
+    @commands.command()
+    async def bbfdupdate(self, ctx: commands.Context):
+        if ctx.author.is_mod or ctx.author.name == 'avaren':
+            await ctx.send('Scraping BBCF Data from dustloop to local database.')
+            scrape_data('bbcf')
+            await ctx.send('Database refreshed.')
 
     @commands.command()
     async def fdreadme(self, ctx: commands.Context):
@@ -128,9 +144,37 @@ class Bot(commands.Bot):
 
     @commands.command()
     async def pokiw(self, ctx: commands.Context):
-        if ctx.author.name in ['avaren','madroctos','voidashe']:
+        if ctx.author.name in ['avaren','madroctos','voidashe','moopoke', 'sajam']:
             await ctx.send("pokiW")
-        
+
+    @commands.command()
+    async def messagetest(self, ctx: commands.Context, *, full_message = None):
+        await ctx.send(full_message)
+
+    @commands.command()
+    async def define(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name != 'sajam':
+            await ctx.send(define_word(full_message))
+
+    @commands.command()
+    async def glossary(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name == 'akafishperson':
+            await ctx.send(f"@{ctx.author.name}: https://glossary.infil.net/?t=" + full_message.replace(' ','+'))
+
+    @commands.command()
+    async def silksong(self, ctx: commands.Context):
+        await ctx.send(f"Silksong is never coming out")
+    
+    @commands.command()
+    async def translate(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name != 'sajam':
+            await ctx.send(translate(full_message))
+
+    @commands.command()
+    async def fishsong(self, ctx: commands.Context):
+        if ctx.channel.name == 'akafishperson':
+            await ctx.send(f"✅ Verses don't rhyme  ✅ Wrong number of syllables  ✅ Performed with love  ✅ Must be an akaFishperson cover")
+
 
 
 

@@ -2,3 +2,4 @@ twitchio
 requests
 bs4
 lxml
+googletrans==3.1.0a0
