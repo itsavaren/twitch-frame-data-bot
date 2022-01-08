@@ -17,7 +17,7 @@ Also some other stuff related to ryan
 
 ## Normal Chatter Commands
 
-- **!fd [character] [move name or input] [stat or 'detail']** searches the character database for a move with the query term as a partial or full match to an input or move name.  Returns the startup, onhit, and onblock stats of the move.  Adding a stat will pull for that stat specifically (onhit, recovery, etc) or adding 'detail' will output the full data of the move.**
+- **!fd [game(optional: ggst or bbcf)] [character] [move name or input] [stat or 'detail'(optional)]** searches the character database for a move with the query term as a partial or full match to an input or move name.  Returns the startup, onhit, and onblock stats of the move.  Adding a stat will pull for that stat specifically (onhit, recovery, etc) or adding 'detail' will output the full data of the move.**
 
 Note on !fd:  for level 1/2/3 of nago/goldlewis moves, append .1 .2 .3, or .br to the input(eg: 5h.2 for level 2 5h). For Ky dragon install moves, prepend di. to the input (eg: di.623s).
 
@@ -31,7 +31,7 @@ Note on !fd:  for level 1/2/3 of nago/goldlewis moves, append .1 .2 .3, or .br t
 
 ## Moderator Commands
 
-- **!fdupdate** deletes database files and re-scrapes the data.
+- **!fdupdate [game]** deletes database files and re-scrapes the data for that game.
 
 
 ## Other Functionality
