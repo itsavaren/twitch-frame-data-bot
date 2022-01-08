@@ -1,4 +1,4 @@
-import requests, glob, os
+import requests, glob, os, json
 from bs4 import BeautifulSoup
 from dust_db import *
 
@@ -86,6 +86,19 @@ def scrape_data(game):
             parse_move(game, line)
     except Exception as e:
         print(e)
+
+    #create character roster file
+    databases = glob.glob('./db/*_framedata.db')
+    name_list = {}
+    for database in databases:
+        conn =sqlite3.connect(database)
+        cur = conn.cursor()
+        cur.execute('SELECT DISTINCT chara FROM framedata')
+        rows = cur.fetchall()
+        name_list[database[5:9]] = listify(rows)
+        conn.close()
+    with open('./db/roster_list.json','w') as fp:
+        json.dump(name_list,fp, indent=4)
 
 def erase_data(game):
     files = glob.glob(f'./db/{game}*')

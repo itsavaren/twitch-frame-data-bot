@@ -1,4 +1,4 @@
-import sqlite3, glob
+import sqlite3, glob, json
 
 
 def limit_length(raw_string):
@@ -11,43 +11,37 @@ def listify(sql_rows):
     return [list(data)[0] for data in sql_rows]
 
 
-# def char_select(search_term):
-#     databases = glob.glob('./db/*_framedata.db')
-#     name_list = {}
-#     results = {}
-#     for database in databases:
-#         conn =sqlite3.connect(database)
-#         cur = conn.cursor()
-#         cur.execute('SELECT DISTINCT chara FROM framedata')
-#         rows = cur.fetchall()
-#         name_list[database[5:9]] = listify(rows)
-#         conn.close()
+def char_select(search_term):
+    with open('./db/roster_list.json','r') as fp:
+        roster_list = json.load(fp)
 
-#     for key, value in name_list.items():
-#         matches = [match for match in value if search_term.lower() in match]
-#         if matches:
-#             results[key] = matches
+    results = {}
+
+    for key, value in roster_list.items():
+        matches = [match for match in value if search_term.lower() in match]
+        if matches:
+            results[key] = matches
     
-#     if results:
-#         return results
-#     else:
-#         return None
-
-def char_select(game, search_term):
-    conn =sqlite3.connect(f'./db/{game}_framedata.db')
-    cur = conn.cursor()
-    cur.execute('SELECT DISTINCT chara FROM framedata')
-    rows = cur.fetchall()
-    name_list = [list(data)[0] for data in rows]
-    conn.close()
-    result = [match for match in name_list if search_term.lower() in match]
-    if result:
-        if len(result) == 1:
-            return result[0]
-        else:
-            return result
+    if results:
+        return results
     else:
         return None
+
+# def char_select(game, search_term):
+#     conn =sqlite3.connect(f'./db/{game}_framedata.db')
+#     cur = conn.cursor()
+#     cur.execute('SELECT DISTINCT chara FROM framedata')
+#     rows = cur.fetchall()
+#     name_list = [list(data)[0] for data in rows]
+#     conn.close()
+#     result = [match for match in name_list if search_term.lower() in match]
+#     if result:
+#         if len(result) == 1:
+#             return result[0]
+#         else:
+#             return result
+#     else:
+#         return None
 
 def connect(game, headers):
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
@@ -156,17 +150,45 @@ def get_char_data(game, character, detail= None):
         return str(f"{char_dict['name']} {detail}: {char_dict[detail]}")    
 
 
-def parse_move(game, full_message):
+def parse_move(full_message):
 
-    conn =sqlite3.connect(f'./db/{game}_framedata.db')
-    cur = conn.cursor()
-    # cur.execute('SELECT DISTINCT chara FROM framedata')
-    # rows = cur.fetchall()
-    # name_list = [list(data)[0] for data in rows]
+    games= []
     words = full_message.lower().split()
 
+
+    if words[0] in ['ggst','bbcf']:
+        games = words.pop(0)
+
+    first_two = char_select(' '.join(words[:2]))
+    first_word = char_select(words[0])
+
+    if first_two:
+        characters = first_two
+        words = words[2:]
+    elif char_select(words[0]):
+        characters = first_word
+        words = words[1:]
+    else:
+        print("Character not found.")
+
+    for key in characters.keys():
+        games.append(key)
+
+    if len(games) == 1:
+        selected_game = games[0]
+        character = [character for character in characters.values()][0]
+        if len(characters) > 1:
+            return f'multiple characters found in {selected_game}: ' + ', '.join(characters)
+        else:
+            character = character[0]
+    else:
+        return f'multiple games found, specify game: "example: !fd ggst may 5h"'
+
+
+    conn =sqlite3.connect(f'./db/{selected_game}_framedata.db')
+    cur = conn.cursor()
     cur.execute('SELECT * FROM framedata')
-    conn2 = sqlite3.connect(f'./db/{game}_characters.db')
+    conn2 = sqlite3.connect(f'./db/{selected_game}_characters.db')
     cur2 = conn2.cursor()
     cur2.execute('SELECT * FROM characters')
     move_headers = [cur[0] for cur in cur.description]
@@ -178,28 +200,21 @@ def parse_move(game, full_message):
 
     conn2.close()
 
-    if char_select(game, ' '.join(words[:2])):
-        character = char_select(game, ' '.join(words[:2]))
-        words = words[2:]
-    elif char_select(game, words[0]):
-        character = char_select(game, words[0])
-        words = words[1:]
-    else:
-        return "Character not found."
+
     
 
     if 'info' in words:
-        return get_char_data(game, character, specifier)
+        return get_char_data(selected_game, character, specifier)
 
     if words[0] == 'update':
         conn.close()
-        with open(f'./db/{game}_db_notes.txt', 'a') as fp:
+        with open(f'./db/{selected_game}_db_notes.txt', 'a') as fp:
             fp.write(full_message+',')
-        update_note(game, character, words[1],' '.join(words[2:]))
+        update_note(selected_game   , character, words[1],' '.join(words[2:]))
         return f'{character} {words[1]} notes updated.'
 
-    if len(character) > 1:
-        return f"{len(character)} characters found:{str(character)}"
+    if type(character) == list:
+        return f"{len(character)} characters found:{' ,'.join(character)}"
 
     cur.execute('SELECT DISTINCT input FROM framedata WHERE chara = ?', (character,))
     rows = cur.fetchall()
@@ -211,6 +226,6 @@ def parse_move(game, full_message):
         rows = cur.fetchall()
         query = ' '.join(words)
 
-    result = get_move_data(game, character, query, specifier)
+    result = get_move_data(selected_game, character, query, specifier)
     conn.close()
     return result

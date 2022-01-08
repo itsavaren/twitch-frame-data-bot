@@ -107,30 +107,27 @@ class Bot(commands.Bot):
         if full_message.split()[0] == 'help':
             await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
             return
-        await ctx.send(parse_move('ggst', full_message))
+        await ctx.send(parse_move(full_message))
 
     @commands.command()
     async def bbfd(self, ctx: commands.Context, *, full_message = None):
-        if 'update' in full_message and ctx.author.name != 'avaren':
-            return
-        if full_message.split()[0] == 'help':
-            await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
-            return
-        await ctx.send(parse_move('bbcf', full_message))
+        await ctx.send('BBFD command is deprecated.  Use !fd for any game.')
 
     @commands.command()
-    async def fdupdate(self, ctx: commands.Context):
+    async def fdupdate(self, ctx: commands.Context, *, full_message = None):
         if ctx.author.is_mod or ctx.author.name == 'avaren':
-            await ctx.send('Scraping GG Strive Data from dustloop to local database.')
-            scrape_data('ggst')
-            await ctx.send('Database refreshed.')
+            if not full_message:
+                game = 'ggst'
+            else:
+                game =  full_message.split()[0]
+            await ctx.send(f'Scraping {game.upper()} data from dustloop to local database.')
+            scrape_data(game)
+            await ctx.send(f'{game.upper()} database refreshed.')
 
     @commands.command()
     async def bbfdupdate(self, ctx: commands.Context):
-        if ctx.author.is_mod or ctx.author.name == 'avaren':
-            await ctx.send('Scraping BBCF Data from dustloop to local database.')
-            scrape_data('bbcf')
-            await ctx.send('Database refreshed.')
+        await ctx.send('BBFDupdate command is deprecated.  Use !fdupdate: "!fdupdate bbcf"')
+
 
     @commands.command()
     async def fdreadme(self, ctx: commands.Context):
