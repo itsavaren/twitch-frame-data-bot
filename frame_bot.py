@@ -120,7 +120,7 @@ class Bot(commands.Bot):
                 game = 'ggst'
             else:
                 game =  full_message.split()[0]
-            await ctx.send(f'Scraping {game.upper()} data from dustloop to local database.')
+            await ctx.send(f'Scraping {game.upper()} data from the web to local database.')
             scrape_data(game)
             await ctx.send(f'{game.upper()} database refreshed.')
 

@@ -122,7 +122,8 @@ def get_move_data(game, character, move_input, detail=None):
             return str(f"{move_data['chara']} {move_data['name']} {move_data['input']} - startup: {move_data['startup']}, onblock: {move_data['onblock']}, onhit: {move_data['onhit']}")
         elif game == 'bbcf':
             return str(f"{move_data['chara']} {move_data['name']} {move_data['input']} - startup: {move_data['startup']}, onblock: {move_data['onblock']}")
-
+        elif game == 'mbtl':
+            return str(f"{move_data['chara']} {move_data['name']} {move_data['input']} - startup: {move_data['startup']}, advantage: {move_data['frameadv']}")
     
     if 'detail' in detail:
         del move_data['page'], move_data['images'], move_data['hitboxes']
@@ -188,17 +189,21 @@ def parse_move(full_message):
     conn =sqlite3.connect(f'./db/{selected_game}_framedata.db')
     cur = conn.cursor()
     cur.execute('SELECT * FROM framedata')
+    move_headers = [cur[0] for cur in cur.description]
+
     conn2 = sqlite3.connect(f'./db/{selected_game}_characters.db')
     cur2 = conn2.cursor()
     cur2.execute('SELECT * FROM characters')
-    move_headers = [cur[0] for cur in cur.description]
     char_headers = [cur2[0] for cur2 in cur2.description]
+    conn2.close()
+
+
     if words[-1] in move_headers or words[-1] in char_headers or 'detail' in words[-1]:
         specifier = words.pop()
     else:
         specifier = None
 
-    conn2.close()
+
 
 
     
