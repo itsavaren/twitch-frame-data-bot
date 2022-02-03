@@ -10,6 +10,8 @@ from dust_db import *
 from dust_scrape import *
 from definitions import *
 from translate import translate
+from songid import *
+from bingus import *
 
 
 ##################################################################################
@@ -22,7 +24,7 @@ except IndexError:
     print('no arguments, setting prefix to !')
     set_prefix = '!'
 
-channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe','abusywizard']
+channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke']
 
 if sys.argv[2:]:
     for arg in sys.argv[2:]:
@@ -48,7 +50,7 @@ fish_deaths = 0
 class Bot(commands.Bot):
 
     def __init__(self):
-        super().__init__(token=auth_token, prefix=set_prefix, initial_channels=channel_names)
+        super().__init__(token=auth_token, prefix=set_prefix, initial_channels=channel_names, case_insensitive = True)
 
     async def event_ready(self):
         print(f'Logged in as | {self.nick}')
@@ -58,7 +60,7 @@ class Bot(commands.Bot):
         if message.echo:
             return
         if message.content.startswith(set_prefix):
-            print(f'{message.author.name}: {message.content}')
+            print(f'[{message.channel}]{message.author.name}: {message.content}')
         if message.author.name == 'ryanhunter' and message.channel.name == 'sajam':
             today = str(date.today())
             if today != ryan_data['date']:
@@ -66,6 +68,7 @@ class Bot(commands.Bot):
         await self.handle_commands(message)
 
 
+#commands start
     @commands.command()
     async def hello(self, ctx: commands.Context):
         await ctx.send(f'Hello {ctx.author.name}.')
@@ -110,10 +113,6 @@ class Bot(commands.Bot):
         await ctx.send(parse_move(full_message))
 
     @commands.command()
-    async def bbfd(self, ctx: commands.Context, *, full_message = None):
-        await ctx.send('BBFD command is deprecated.  Use !fd for any game.')
-
-    @commands.command()
     async def fdupdate(self, ctx: commands.Context, *, full_message = None):
         if ctx.author.is_mod or ctx.author.name == 'avaren':
             if not full_message:
@@ -123,11 +122,6 @@ class Bot(commands.Bot):
             await ctx.send(f'Scraping {game.upper()} data from the web to local database.')
             scrape_data(game)
             await ctx.send(f'{game.upper()} database refreshed.')
-
-    @commands.command()
-    async def bbfdupdate(self, ctx: commands.Context):
-        await ctx.send('BBFDupdate command is deprecated.  Use !fdupdate: "!fdupdate bbcf"')
-
 
     @commands.command()
     async def fdreadme(self, ctx: commands.Context):
@@ -155,7 +149,7 @@ class Bot(commands.Bot):
 
     @commands.command()
     async def glossary(self, ctx: commands.Context, *, full_message = None):
-        if ctx.channel.name == 'akafishperson':
+        if ctx.channel.name in ['akafishperson','voidashe']:
             await ctx.send(f"@{ctx.author.name}: https://glossary.infil.net/?t=" + full_message.replace(' ','+'))
 
     @commands.command()
@@ -172,6 +166,49 @@ class Bot(commands.Bot):
         if ctx.channel.name == 'akafishperson':
             await ctx.send(f"✅ Verses don't rhyme  ✅ Wrong number of syllables  ✅ Performed with love  ✅ Must be an akaFishperson cover")
 
+    @commands.command()
+    async def songid(self, ctx: commands.Context): 
+        await ctx.send(f'@{ctx.author.name} {identify_song(ctx.channel.name)}')
+
+    @commands.command()
+    async def bingus(self, ctx: commands.Context): 
+        await ctx.send(f'The current price of bingus token is ${bingus_quote()}')
+
+    @commands.command()
+    async def appeal(self, ctx: commands.Context): 
+        await ctx.send(f'springman too lubricated. denied.')
+
+
+
+
+
+
+#I don't know how to make it stop logging command not found errors.
+    @commands.command()
+    async def join(self, ctx: commands.Context): 
+        return    
+    @commands.command()
+    async def leave(self, ctx: commands.Context): 
+        return   
+    @commands.command()
+    async def queue(self, ctx: commands.Context): 
+        return
+    @commands.command()
+    async def list(self, ctx: commands.Context): 
+        return
+    @commands.command()
+    async def position(self, ctx: commands.Context): 
+        return
+    @commands.command()
+    async def next(self, ctx: commands.Context): 
+        return
+    @commands.command()
+    async def wik(self, ctx: commands.Context): 
+        return
+    @commands.command()
+    async def form(self, ctx: commands.Context): 
+        return
+    
 
 
 
