@@ -1,3 +1,5 @@
+*Soon to be updated.*
+
 # Frame Data Bot
 Twitch chat bot to scrape dustloop to a local sqlite3 database, and then retrieve data from the database via user query.
 
