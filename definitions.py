@@ -1,19 +1,24 @@
 import requests
 
-
 def define_word(word):
 
-    url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + word.lower()
+    with open('dict_token.txt') as fp:
+        dict_token = fp.read()
+
+
+    url = f"https://www.dictionaryapi.com/api/v3/references/collegiate/json/{word.lower()}?key={dict_token}"
 
     r = requests.get(url)
 
     result_json = r.json()
 
-    result_part_of_speech = result_json[0]['meanings'][0]['partOfSpeech']
+    result_stem = result_json[0]['meta']['id'].split(':')[0]
 
-    result_definition = result_json[0]['meanings'][0]['definitions'][0]['definition']
+    result_part_of_speech = result_json[0]['fl']
 
-    result = f'{word} - {result_part_of_speech}: {result_definition}'
+    result_definition = result_json[0]['shortdef']
+
+    result = f'{result_stem} - {result_part_of_speech}: {result_definition[0]}'
 
 
     return result

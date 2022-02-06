@@ -8,11 +8,9 @@ def limit_length(raw_string):
     else:
         return raw_string
 
-#
 def listify(sql_rows):
     """Turn a sqlite row fetch result into a list."""
     return [list(data)[0] for data in sql_rows]
-
 
 def char_select(search_term):
     """Search for and selects a character or characters from the roster_list.json file."""
@@ -20,12 +18,13 @@ def char_select(search_term):
         roster_list = json.load(fp)
 
     results = {}
-
+#for each game in the roster list, use list comprehension to build a list of characters that match, in a dictionary key for each game with matches.
     for key, value in roster_list.items():
+        #regular expression match is for the term if it matches at the start of the string and wildcard of any length afterwards
         matches = [match for match in value if re.findall(f"^{search_term}.*",match)]
         if matches:
             results[key] = matches
-            
+
     if results:
         return results
     else:
@@ -33,10 +32,15 @@ def char_select(search_term):
 
 def connect(game, headers):
     """Connect to a given game's framedata sqlite database file, creating it first if necessary."""
+    #open the database file
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
+    #create cursor
     cur = conn.cursor()
+    #create the table if it isn't in there
     cur.execute('CREATE TABLE IF NOT EXISTS framedata(%s)' % ', '.join(headers))
+    #commit any changes
     conn.commit()
+    #close the connection
     conn.close()
 
 def connect_chars(game, headers):
@@ -52,10 +56,25 @@ def insert_data(game, move_list):
     """Insert data into a given game's framedata sqlite database file."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
+    #create a string of comma separated question marks equal to the number of column names provided, to be used below
     val_count = ('?,'*len(move_list[0]))[:-1]
+    #insert the rows to the database table
     for move in move_list:
         try:
             cur.execute('INSERT INTO framedata VALUES (%s)' % val_count, (move))
+        except Exception as e:
+            print(e)
+    conn.commit()
+    conn.close()
+
+def insert_data_chars(game, character_list):
+    """Insert data into a given game's character sqlite database file."""
+    conn =sqlite3.connect(f'./db/{game}_characters.db')
+    cur = conn.cursor()
+    val_count = ('?,'*len(character_list[0]))[:-1]
+    for move in character_list:
+        try:
+            cur.execute('INSERT INTO characters VALUES (%s)' % val_count, (move))
         except Exception as e:
             print(e)
     conn.commit()
@@ -66,19 +85,6 @@ def update_note(game, character, move, note):
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
     cur.execute("UPDATE framedata SET notes=? WHERE chara=? AND input=?",(note,character,move))
-    conn.commit()
-    conn.close()
-
-def insert_data_chars(game, move_list):
-    """Insert data into a given game's character sqlite database file."""
-    conn =sqlite3.connect(f'./db/{game}_characters.db')
-    cur = conn.cursor()
-    val_count = ('?,'*len(move_list[0]))[:-1]
-    for move in move_list:
-        try:
-            cur.execute('INSERT INTO characters VALUES (%s)' % val_count, (move))
-        except Exception as e:
-            print(e)
     conn.commit()
     conn.close()
 
@@ -228,8 +234,6 @@ def parse_move(full_message):
         specifier = words.pop()
     else:
         specifier = None
-
-    
 
     if 'info' in words:
         return get_char_data(selected_game, character, specifier)

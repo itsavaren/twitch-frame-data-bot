@@ -29,9 +29,20 @@ except IndexError:
 
 #list of channels to join
 channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
-'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310']
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310','destiny']
 
-#subchannel lists for different bot functions
+
+fighter_channels = channel_names
+simple_meme_channels = channel_names
+complex_meme_channels = channel_names
+glossary_channels = channel_names
+league_channels = channel_names
+songid_channels = channel_names
+
+
+##########
+#DELETE BELOW IF YOU RUN YOUR OWN INSTANCE
+##########
 fighter_channels = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
 'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','kizziekay310']
 
@@ -47,6 +58,9 @@ glossary_channels = ['avaren','akafishperson','letsdaze_','lastcody',
 league_channels = ['avaren','mrmouton']
 
 songid_channels = ['avaren','mrmouton','voidashe','akafishperson','hotashi']
+##########
+#DELETE ABOVE IF YOU RUN YOUR OWN INSTANCE
+##########
 
 #check for command line arguments after prefix argument for additional channels to join
 if sys.argv[2:]:
