@@ -1,6 +1,7 @@
-
-token.txt
-unit_test.py
+/db/*
 test.py
 ryan.json
-*.pyc
+unit_test.py
+token.txt
+audd_token.txt
+__pycache__
