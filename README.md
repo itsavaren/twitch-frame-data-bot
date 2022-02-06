@@ -47,7 +47,7 @@ If you want me to add my instance to your channel (user: whattheBOTdoin) just ad
 
 * Download all files.
 * Create chat user token at https://twitchtokengenerator.com/
-* For song ID functionality, create an api user account at https://dashboard.audd.io/
+* For song ID functionality, create an api user account at https://dashboard.audd.io/, and install ffmpeg.
 * Put user token into a file named token.txt in the same directory as the files.  optionally put your audd.io token in a file called audd_token.txt in the same directory.
 * Edit channel_names variable in frame_bot.py to your channel name only.  Remove section below it marked for deletion incase of running your own instance.
 * On the device you will run the bot, install python 3.9.x
