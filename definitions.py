@@ -1,46 +1,19 @@
-import json
 import requests
-
 
 
 def define_word(word):
 
-    app_id  = "131f4a06"
-    app_key  = "2d63881f00805ec6588e4366d0a45c03"
-    endpoint = "entries"
-    language_code = "en-us"
-    fields = 'definitions'
+    url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + word.lower()
 
+    r = requests.get(url)
 
-    word_id = word
+    result_json = r.json()
 
+    result_part_of_speech = result_json[0]['meanings'][0]['partOfSpeech']
 
-    url = "https://od-api.oxforddictionaries.com/api/v2/" + endpoint + "/" + language_code + "/" + word_id.lower()
+    result_definition = result_json[0]['meanings'][0]['definitions'][0]['definition']
 
-    r = requests.get(url, headers = {"app_id": app_id, "app_key": app_key, "fields": fields})
+    result = f'{word} - {result_part_of_speech}: {result_definition}'
 
-    print("code {}\n".format(r.status_code))
-
-    definition = r.json()
-
-    results = definition['results']
-
-    results = results[0]
-
-    results = results['lexicalEntries']
-
-    results = results[0]
-
-    results = results['entries']
-
-    results = results[0]
-
-    results = results['senses']
-
-    results = results[0]
-
-    results = results['definitions']
-
-    result = results[0]
 
     return result

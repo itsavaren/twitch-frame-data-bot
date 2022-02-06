@@ -20,8 +20,8 @@ def translate(full_message):
     # init the Google API translator
     translator = Translator()
 
-    # translate a spanish text to english text (by default)
-    translation = translator.translate(f"{query}", src='en', dest=f'{lang}')
+    # translate text to french text (by default)
+    translation = translator.translate(f"{query}", src='auto', dest=f'{lang}')
     if translation.pronunciation:
         return f"{translation.origin} ({translation.src}) --> {translation.text} ({translation.dest} - {translation.pronunciation})"
     else:

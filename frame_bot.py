@@ -10,6 +10,7 @@ from dust_db import *
 from dust_scrape import *
 from definitions import *
 from translate import translate
+from rankfinder import *
 from songid import *
 from bingus import *
 
@@ -18,30 +19,52 @@ from bingus import *
 #ARGUMENT INGESTION, VARIABLE INITIALIZATION AND JOIN
 ##################################################################################
 
+
+#set prefix to first command line argument, or default to !
 try:
     set_prefix = sys.argv[1]
 except IndexError:
     print('no arguments, setting prefix to !')
     set_prefix = '!'
 
-channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody','redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke']
+#list of channels to join
+channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310']
 
+#subchannel lists for different bot functions
+fighter_channels = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','kizziekay310']
+
+simple_meme_channels = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton']
+
+complex_meme_channels = ['avaren','akafishperson','letsdaze_','lastcody',
+'redditto','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','mrmouton']
+
+glossary_channels = ['avaren','akafishperson','letsdaze_','lastcody',
+'leafretv','voidashe','abusywizard','deyvonnn',]
+
+league_channels = ['avaren','mrmouton']
+
+songid_channels = ['avaren','mrmouton','voidashe','akafishperson','hotashi']
+
+#check for command line arguments after prefix argument for additional channels to join
 if sys.argv[2:]:
     for arg in sys.argv[2:]:
         channel_names.append(arg)
 else:
     print('no additional channels')
 
-
 print(f'Joining twitch channels {", ".join(channel_names)} with {set_prefix} set as command prefix.')
 
+#open twitch user api token file
 with open('token.txt') as fp:
     auth_token = fp.read()
 
+#open daily ryan contest data file
 with open('ryan.json') as fp:
     ryan_data = json.load(fp)
 
-fish_deaths = 0
 
 ##################################################################################
 #BOT INITIALIZATION
@@ -56,11 +79,15 @@ class Bot(commands.Bot):
         print(f'Logged in as | {self.nick}')
 
     async def event_message(self, message):
+        #make start a global variable if it isn't already, for ryan stuff. this is bad, I know.  the whole ryan thing needs a re-think but it works for now
         global start
+        #ignore own messages
         if message.echo:
             return
+        #print chatter's successful command uses
         if message.content.startswith(set_prefix):
             print(f'[{message.channel}]{message.author.name}: {message.content}')
+        #more ryan stuff
         if message.author.name == 'ryanhunter' and message.channel.name == 'sajam':
             today = str(date.today())
             if today != ryan_data['date']:
@@ -71,18 +98,16 @@ class Bot(commands.Bot):
 #commands start
     @commands.command()
     async def hello(self, ctx: commands.Context):
-        await ctx.send(f'Hello {ctx.author.name}.')
-        print(f'Hello {ctx.author.name}')
+        if ctx.author.is_mod or ctx.author.name == 'avaren':
+            await ctx.send(f'Hello {ctx.author.name}.  I am alive. MrDestructoid')
 
     @commands.command()
     async def troy(self, ctx: commands.Context):
         await ctx.send('OhMyDog')
-        print('OhMyDog')
 
     @commands.command()
     async def miso(self, ctx: commands.Context):
         await ctx.send('Wowee')
-        print('Wowee')
 
     @commands.command()
     async def ryan(self, ctx: commands.Context):
@@ -99,66 +124,60 @@ class Bot(commands.Bot):
                 del start
 
     @commands.command()
-    async def geel(self, ctx: commands.Context):
-        if ctx.author.name in ['ryanhunter','avaren']:
-            await ctx.send('"Madroctos: @RyanHunter !ryan how does it geel"')
-
-    @commands.command()
     async def fd(self, ctx: commands.Context, *, full_message = None):
-        if 'update' in full_message and ctx.author.name != 'avaren':
-            return
-        if full_message.split()[0] == 'help':
-            await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
-            return
-        await ctx.send(parse_move(full_message))
+        if ctx.channel.name in fighter_channels:
+            #prevent anyone but me from updating database notes from chat
+            if 'update' in full_message and ctx.author.name != 'avaren':
+                return
+            #handle !fd help requests, common guess for help with the bot
+            if full_message.split()[0] == 'help':
+                await ctx.send(f'Format: !fd [character(partial ok)] [move name or input(partial ok)] [specified stat or "detail" for full move stats.  eg: !fd gio 2d startup, !fd ky stun dipper')
+                return
+            await ctx.send(parse_move(full_message))
 
     @commands.command()
     async def fdupdate(self, ctx: commands.Context, *, full_message = None):
-        if ctx.author.is_mod or ctx.author.name == 'avaren':
-            if not full_message:
-                game = 'ggst'
-            else:
-                game =  full_message.split()[0]
-            await ctx.send(f'Scraping {game.upper()} data from the web to local database.')
-            scrape_data(game)
-            await ctx.send(f'{game.upper()} database refreshed.')
+        if ctx.channel.name in fighter_channels:
+            #only allows streamer or me to scrape new data
+            if ctx.author.name == ctx.channel.name or ctx.author.name == 'avaren':
+                #if no argument, scrape guilty gear strive
+                if not full_message:
+                    game = 'ggst'
+                else:
+                    game =  full_message.split()[0]
+                await ctx.send(f'Scraping {game.upper()} data from the web to local database.')
+                scrape_data(game)
+                await ctx.send(f'{game.upper()} database refreshed.')
 
     @commands.command()
     async def fdreadme(self, ctx: commands.Context):
-        if ctx.author.is_mod or ctx.author.name == 'avaren':
-            await ctx.send('Visit https://github.com/itsavaren/strive-frame-data-bot for documentation.') 
-        
-    @commands.command()
-    async def weird(self, ctx: commands.Context):
-        if ctx.author.is_mod:
-            await ctx.send("There's a good kind of weird, and a bad kind of weird. Stick to the good kind.")
+        if ctx.channel.name in fighter_channels:
+            if ctx.author.is_mod or ctx.author.name == 'avaren':
+                await ctx.send('Visit https://github.com/itsavaren/strive-frame-data-bot for documentation.') 
 
     @commands.command()
     async def pokiw(self, ctx: commands.Context):
-        if ctx.author.name in ['avaren','madroctos','voidashe','moopoke', 'sajam']:
+        if ctx.author.name in ['avaren','madroctos','voidashe','moopoke', 'sajam', 'flaskpotato'] or ctx.author.name == ctx.channel.name:
             await ctx.send("pokiW")
 
     @commands.command()
-    async def messagetest(self, ctx: commands.Context, *, full_message = None):
-        await ctx.send(full_message)
-
-    @commands.command()
     async def define(self, ctx: commands.Context, *, full_message = None):
-        if ctx.channel.name != 'sajam':
+        if ctx.channel.name in complex_meme_channels:
             await ctx.send(define_word(full_message))
 
     @commands.command()
     async def glossary(self, ctx: commands.Context, *, full_message = None):
-        if ctx.channel.name in ['akafishperson','voidashe']:
+        if ctx.channel.name in glossary_channels:
             await ctx.send(f"@{ctx.author.name}: https://glossary.infil.net/?t=" + full_message.replace(' ','+'))
 
     @commands.command()
     async def silksong(self, ctx: commands.Context):
-        await ctx.send(f"Silksong is never coming out")
+        if ctx.channel.name in simple_meme_channels:
+            await ctx.send(f"Silksong is never coming out")
     
     @commands.command()
     async def translate(self, ctx: commands.Context, *, full_message = None):
-        if ctx.channel.name != 'sajam':
+        if ctx.channel.name in complex_meme_channels:
             await ctx.send(translate(full_message))
 
     @commands.command()
@@ -167,49 +186,45 @@ class Bot(commands.Bot):
             await ctx.send(f"✅ Verses don't rhyme  ✅ Wrong number of syllables  ✅ Performed with love  ✅ Must be an akaFishperson cover")
 
     @commands.command()
-    async def songid(self, ctx: commands.Context): 
-        await ctx.send(f'@{ctx.author.name} {identify_song(ctx.channel.name)}')
+    async def rank(self, ctx: commands.Context, *, full_message = None): 
+        if ctx.channel.name in league_channels:
+            if not full_message:
+                if ctx.channel.name == 'mrmouton':
+                    full_message = 'iammentallyill'
+                if ctx.channel.name == 'destiny':
+                    full_message = 'yorha destiny'
+                else:
+                    await ctx.send('Please specify a player name.')
+                    return
+            await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
+        
+    @commands.command()
+    async def lp(self, ctx: commands.Context, *, full_message = 'iammentallyill'): 
+        if ctx.channel.name in league_channels:
+            if not full_message:
+                if ctx.channel.name == 'mrmouton':
+                    full_message = 'iammentallyill'
+                if ctx.channel.name == 'destiny':
+                    full_message = 'yorha destiny'
+                else:
+                    await ctx.send('Please specify a player name.')
+                    return
+            await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
 
     @commands.command()
-    async def bingus(self, ctx: commands.Context): 
-        await ctx.send(f'The current price of bingus token is ${bingus_quote()}')
+    async def songid(self, ctx: commands.Context):
+        if ctx.channel.name in songid_channels:
+            await ctx.send(f'@{ctx.author.name} {identify_song(ctx.channel.name)}')
 
     @commands.command()
-    async def appeal(self, ctx: commands.Context): 
-        await ctx.send(f'springman too lubricated. denied.')
+    async def orcs(self, ctx: commands.Context):
+        if ctx.channel.name in simple_meme_channels:
+            await ctx.send(f'SMOrc SMOrc SMOrc')
 
-
-
-
-
-
-#I don't know how to make it stop logging command not found errors.
     @commands.command()
-    async def join(self, ctx: commands.Context): 
-        return    
-    @commands.command()
-    async def leave(self, ctx: commands.Context): 
-        return   
-    @commands.command()
-    async def queue(self, ctx: commands.Context): 
-        return
-    @commands.command()
-    async def list(self, ctx: commands.Context): 
-        return
-    @commands.command()
-    async def position(self, ctx: commands.Context): 
-        return
-    @commands.command()
-    async def next(self, ctx: commands.Context): 
-        return
-    @commands.command()
-    async def wik(self, ctx: commands.Context): 
-        return
-    @commands.command()
-    async def form(self, ctx: commands.Context): 
-        return
-    
-
+    async def bingus(self, ctx: commands.Context):
+        if ctx.channel.name in simple_meme_channels:
+            await ctx.send(f'The current price of bingus is ${bingus_quote()}')
 
 
 bot = Bot()

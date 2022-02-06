@@ -2,16 +2,20 @@ import sqlite3, glob, json, re
 
 
 def limit_length(raw_string):
+    """Limit the length of a string to 100 characters."""
     if len(raw_string) > 100:
         return raw_string[:100]+"..."
     else:
         return raw_string
 
+#
 def listify(sql_rows):
+    """Turn a sqlite row fetch result into a list."""
     return [list(data)[0] for data in sql_rows]
 
 
 def char_select(search_term):
+    """Search for and selects a character or characters from the roster_list.json file."""
     with open('./db/roster_list.json','r') as fp:
         roster_list = json.load(fp)
 
@@ -21,13 +25,14 @@ def char_select(search_term):
         matches = [match for match in value if re.findall(f"^{search_term}.*",match)]
         if matches:
             results[key] = matches
-    
+            
     if results:
         return results
     else:
         return None
 
 def connect(game, headers):
+    """Connect to a given game's framedata sqlite database file, creating it first if necessary."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS framedata(%s)' % ', '.join(headers))
@@ -35,6 +40,7 @@ def connect(game, headers):
     conn.close()
 
 def connect_chars(game, headers):
+    """Connect to a given game's character sqlite database file, creating it first if necessary."""
     conn =sqlite3.connect(f'./db/{game}_characters.db')
     cur = conn.cursor()
     cur.execute('CREATE TABLE IF NOT EXISTS characters(%s)' % ', '.join(headers))
@@ -43,6 +49,7 @@ def connect_chars(game, headers):
     
 
 def insert_data(game, move_list):
+    """Insert data into a given game's framedata sqlite database file."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
     val_count = ('?,'*len(move_list[0]))[:-1]
@@ -55,6 +62,7 @@ def insert_data(game, move_list):
     conn.close()
 
 def update_note(game, character, move, note):
+    """Update the notes column of a given move in a given game's framedata sqlite database file."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
     cur.execute("UPDATE framedata SET notes=? WHERE chara=? AND input=?",(note,character,move))
@@ -62,6 +70,7 @@ def update_note(game, character, move, note):
     conn.close()
 
 def insert_data_chars(game, move_list):
+    """Insert data into a given game's character sqlite database file."""
     conn =sqlite3.connect(f'./db/{game}_characters.db')
     cur = conn.cursor()
     val_count = ('?,'*len(move_list[0]))[:-1]
@@ -74,17 +83,31 @@ def insert_data_chars(game, move_list):
     conn.close()
 
 def get_fastest(game, character):
+    """Get the 5 fastest normal moves by startup frames for a given character."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
-    cur.execute("SELECT input, startup FROM framedata WHERE chara=? AND input NOT LIKE ? AND input NOT LIKE ? AND cast(startup as INT) > 0 ORDER BY cast(startup as INT) LIMIT 5", (character,'j%','%4d%'))
+    cur.execute("SELECT input, startup FROM framedata WHERE chara=? AND type=? AND input NOT LIKE ? AND input NOT LIKE ? AND cast(startup as INT) > 0 ORDER BY cast(startup as INT) LIMIT 5", (character,'normal','j%','%4d%'))
     rows = cur.fetchall()
-    move_list = [list(data) for data in rows]
-    out_string = f"{character}'s 5 fastest moves are: "
+    move_list = listify(rows)
+    out_string = f"{character}'s 5 fastest normals are: "
+    for result in move_list:
+        out_string += result[0] + ' - ' + str(result[1]) + 'f | '
+    return out_string
+
+def get_slowest(game, character):
+    """Get the 5 slowest moves by startup frames for a given character."""
+    conn =sqlite3.connect(f'./db/{game}_framedata.db')
+    cur = conn.cursor()
+    cur.execute("SELECT input, startup FROM framedata WHERE chara=? AND input NOT LIKE ? AND input NOT LIKE ? AND cast(startup as INT) > 0 ORDER BY cast(startup as INT) DESC LIMIT 5", (character,'j%','%4d%'))
+    rows = cur.fetchall()
+    move_list = listify(rows)
+    out_string = f"{character}'s 5 slowest moves are: "
     for result in move_list:
         out_string += result[0] + ' - ' + str(result[1]) + 'f | '
     return out_string
 
 def get_move_data(game, character, move_input, detail=None):
+    """Get the move data for a given input or name.  Returns either a set short set of properties, specific property, or all properties based on query."""
     conn =sqlite3.connect(f'./db/{game}_framedata.db')
     cur = conn.cursor()
     cur.execute('SELECT * FROM framedata WHERE input LIKE ? AND chara=?', (move_input, character))
@@ -99,7 +122,7 @@ def get_move_data(game, character, move_input, detail=None):
         rows = cur.fetchall()
     if not rows:
         return 'No matching result for move input or name.'
-    move_list = [list(data) for data in rows]
+    move_list = listify(rows)
     cur.execute('SELECT * FROM framedata')
     labels = [cur[0] for cur in cur.description]
     conn.close()
@@ -130,17 +153,21 @@ def get_move_data(game, character, move_input, detail=None):
 
     
 def get_char_data(game, character, detail= None):
+    """Get the character data for a given character.  Returns either a set short set of properties, specific property, or all properties based on query."""
     conn =sqlite3.connect(f'./db/{game}_characters.db')
     cur = conn.cursor()
     cur.execute('SELECT * FROM characters WHERE name LIKE ?', (character,))
     rows = cur.fetchall()
-    char_list = [list(data) for data in rows]
+    char_list = listify(rows)
     cur.execute('SELECT * FROM characters')
     labels = [cur[0] for cur in cur.description]    
     char_dict = [dict(zip(labels,row)) for row in char_list][0]
     conn.close()
     if detail == None:
-        return str(f"{char_dict['name']}  - health: {char_dict['health']}, personacards: {char_dict['personacards']}, backdash: {char_dict['backdash']}")
+        if game == 'ggst':
+            return str(f"{char_dict['name']}  - defense: {char_dict['defense']}, guts: {char_dict['guts']}, weight: {char_dict['weight']}, backdash: {char_dict['backdash']}")
+        elif game == 'p4u2':
+            return str(f"{char_dict['name']}  - health: {char_dict['health']}, personacards: {char_dict['personacards']}, backdash: {char_dict['backdash']}")
     if 'detail' in detail:
         del char_dict['page'], char_dict['portrait'], char_dict['icon']
         return ', '.join([str(f'{keys}: {values}') for (keys, values) in char_dict.items()])
@@ -149,6 +176,7 @@ def get_char_data(game, character, detail= None):
 
 
 def parse_move(full_message):
+    """Parse the query passed from a twitch user to validate character/game, input/move name, and selected properties, or other functions."""
 
     games= []
     words = full_message.lower().split()
@@ -177,11 +205,11 @@ def parse_move(full_message):
         selected_game = games[0]
         character_list = [character for character in characters[selected_game]]
         if len(character_list) > 1:
-            return f'multiple characters found in {selected_game}: ' + ', '.join(character_list)
+            print( f'multiple characters found in {selected_game}: ' + ', '.join(character_list))
         else:
             character = character_list[0]
     else:
-        return f'multiple games found, specify game{games}: "example: !fd ggst anji 5h"'
+        print( f'multiple games found, specify game{games}: "example: !fd ggst anji 5h"')
 
 
     conn =sqlite3.connect(f'./db/{selected_game}_framedata.db')
@@ -201,15 +229,14 @@ def parse_move(full_message):
     else:
         specifier = None
 
-
-
-
     
 
     if 'info' in words:
         return get_char_data(selected_game, character, specifier)
     if 'fastest' in words:
         return get_fastest(selected_game, character)
+    if 'slowest' in words:
+        return get_slowest(selected_game, character)
 
     if words[0] == 'update':
         conn.close()
@@ -220,7 +247,7 @@ def parse_move(full_message):
 
     cur.execute('SELECT DISTINCT input FROM framedata WHERE chara = ?', (character,))
     rows = cur.fetchall()
-    move_input_list = [list(data)[0] for data in rows]
+    move_input_list = listify(rows)
     if words[0] in move_input_list:
         query = words.pop(0)
     else:
