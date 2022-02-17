@@ -79,12 +79,15 @@ def insert_data(matches: list):
     conn.commit()
     conn.close()
 
-def load_history(mode: str):
+def load_history(count=None):
     """Pull the match history from the API."""
-    if mode == 'oneshot':
-        oneshot = True
+    if not count:
+        match_limit = 100
+    elif count == 'full':
+        match_limit = 10000
     else:
-        oneshot = False
+        match_limit = int(count)
+
 
     with open('riot_token.txt') as fp:
         riot_token = fp.read()
@@ -104,6 +107,7 @@ def load_history(mode: str):
     empties = 0
     begin_index = 0
     end_index = 40
+    match_count = 0
 
     for guy in history_targets:
         while True:
@@ -206,11 +210,12 @@ def load_history(mode: str):
                     empties = 0
                     break
             print('sleeping')
-            if oneshot:
+            if match_count > match_limit:
                 break
             time.sleep(60)
             begin_index += 40
             end_index += 40
+            match_count += 40
 
 def save_champs():
     with open('./db/champ_list.txt', 'w') as fp:
