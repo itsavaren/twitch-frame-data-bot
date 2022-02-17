@@ -290,6 +290,11 @@ class Bot(commands.Bot):
             await ctx.send('Attempting to get fresh matches.')
             load_history(full_message)
 
+    @commands.command()
+    async def dgtotal(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name in league_channels:
+            await ctx.send(f'Database contains{total_matches()} matches.')
+
 
 bot = Bot()
 bot.run()

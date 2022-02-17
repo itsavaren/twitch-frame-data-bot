@@ -22,6 +22,15 @@ def connect():
     #close the connection
     conn.close()
 
+def total_matches():
+    """Get total number of matches in database."""
+    conn =sqlite3.connect(f'./db/match_history.db')
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM matches")
+    total_matches = cur.fetchall()[0][0]
+    conn.close()
+    return total_matches
+
 def champ_winrate(champion):
     """Get the winrates of a champion."""
     if not champion:
