@@ -28,5 +28,8 @@ def identify_song(streamer):
     result = requests.post('https://api.audd.io/', data=data, files=files)
     result_json = result.json()
 
+    if result_json['result']['title'] == 'death bed (coffee for your head)':
+        return f"The song playing now is {result_json['result']['artist']} - {result_json['result']['title']} (SONG 2/3)"
+
     return f"The song playing now is {result_json['result']['artist']} - {result_json['result']['title']}"
 

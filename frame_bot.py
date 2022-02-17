@@ -2,10 +2,6 @@
 from twitchio.ext import commands
 import sys, json, time
 from datetime import date
-
-from googletrans import Translator, constants
-from pprint import pprint
-
 from dust_db import *
 from dust_scrape import *
 from definitions import *
@@ -13,6 +9,11 @@ from translate import translate
 from rankfinder import *
 from songid import *
 from bingus import *
+from wiki_lookup import *
+from dggg import *
+# from twitchio.ext.commands import core
+# from googletrans import Translator, constants
+# from pprint import pprint
 
 
 ##################################################################################
@@ -29,7 +30,7 @@ except IndexError:
 
 #list of channels to join
 channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
-'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310','destiny']
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310','destiny','notsoerudite','diaphone_']
 
 
 fighter_channels = channel_names
@@ -44,7 +45,7 @@ songid_channels = channel_names
 #DELETE BELOW IF YOU RUN YOUR OWN INSTANCE
 ##########
 fighter_channels = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
-'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','kizziekay310']
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','kizziekay310','diaphone_']
 
 simple_meme_channels = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
 'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton']
@@ -55,9 +56,11 @@ complex_meme_channels = ['avaren','akafishperson','letsdaze_','lastcody',
 glossary_channels = ['avaren','akafishperson','letsdaze_','lastcody',
 'leafretv','voidashe','abusywizard','deyvonnn',]
 
-league_channels = ['avaren','mrmouton']
+league_channels = ['avaren','mrmouton','destiny']
 
-songid_channels = ['avaren','mrmouton','voidashe','akafishperson','hotashi']
+songid_channels = ['avaren','mrmouton','voidashe','akafishperson','hotashi','leafretv']
+
+wiki_channels = ['avaren','akafishperson', 'notsoerudite','mrmouton']
 ##########
 #DELETE ABOVE IF YOU RUN YOUR OWN INSTANCE
 ##########
@@ -76,8 +79,13 @@ with open('token.txt') as fp:
     auth_token = fp.read()
 
 #open daily ryan contest data file
-with open('ryan.json') as fp:
-    ryan_data = json.load(fp)
+try:
+    with open('./db/ryan.json') as fp:
+        ryan_data = json.load(fp)
+except:
+    ryan_data = {}
+    with open('./db/ryan.json', 'w') as fp:
+        json.dump(ryan_data, fp, indent = 4)
 
 
 ##################################################################################
@@ -92,15 +100,20 @@ class Bot(commands.Bot):
     async def event_ready(self):
         print(f'Logged in as | {self.nick}')
 
+    #ignore incorrect command errors
+    async def event_command_error(self, context: commands.Context, error: Exception):
+        pass
+
     async def event_message(self, message):
         #make start a global variable if it isn't already, for ryan stuff. this is bad, I know.  the whole ryan thing needs a re-think but it works for now
         global start
         #ignore own messages
         if message.echo:
+            print(f'{message.channel} {message.content}')
             return
         #print chatter's successful command uses
-        if message.content.startswith(set_prefix):
-            print(f'[{message.channel}]{message.author.name}: {message.content}')
+        # if message.content.startswith(set_prefix):
+        #     print(f'[{message.channel}]{message.author.name}: {message.content}')
         #more ryan stuff
         if message.author.name == 'ryanhunter' and message.channel.name == 'sajam':
             today = str(date.today())
@@ -113,7 +126,7 @@ class Bot(commands.Bot):
     @commands.command()
     async def hello(self, ctx: commands.Context):
         if ctx.author.is_mod or ctx.author.name == 'avaren':
-            await ctx.send(f'Hello {ctx.author.name}.  I am alive. MrDestructoid')
+            await ctx.send(f'Hello {ctx.author.name} in {ctx.channel.name}.  I am alive. MrDestructoid')
 
     @commands.command()
     async def troy(self, ctx: commands.Context):
@@ -130,12 +143,34 @@ class Bot(commands.Bot):
             if 'start' in globals():
                 end = time.time()
                 elapsed = end - start
-                await ctx.send(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
-                print(f'{ctx.author.name} won the daily ryan challenge in {elapsed:0.3f} seconds.')
+                elapsed = round(elapsed,5)
+                try: 
+                    ryan_data['winners'][ctx.author.name]
+                except KeyError:
+                    ryan_data['winners'][ctx.author.name] = 0
+                await ctx.send(f"{ctx.author.name} won the daily ryan challenge in {elapsed} seconds. Wins: {ryan_data['winners'][ctx.author.name]+1}")
                 ryan_data['date'] = str(date.today())
-                with open('ryan.json', 'w') as fp:
+                ryan_data['winners'][ctx.author.name] += 1
+                if elapsed < ryan_data['record_time']:
+                    ryan_data['record_time'] = elapsed
+                    ryan_data['record_holder'] = ctx.author.name
+                    await ctx.send(f'A new record!  Congratulations {ctx.author.name}.')
+                with open('./db/ryan.json', 'w') as fp:
                     json.dump(ryan_data, fp, indent = 4)
                 del start
+
+    @commands.command()
+    async def ryanstats(self, ctx: commands.Context, *, full_message = None):
+        global ryan_data
+        if ctx.channel.name == 'sajam':
+            if full_message and full_message.split()[0] == 'record':
+                await ctx.send(f"The current record holder is {ryan_data['record_holder']} with a time of {ryan_data['record_time']} seconds.")
+            else:
+                try: 
+                    ryan_data['winners'][ctx.author.name]
+                except KeyError:
+                    return
+                await ctx.send(f"@{ctx.author.name} You have won the Ryan challenge {ryan_data['winners'][ctx.author.name]} times.")
 
     @commands.command()
     async def fd(self, ctx: commands.Context, *, full_message = None):
@@ -171,7 +206,7 @@ class Bot(commands.Bot):
 
     @commands.command()
     async def pokiw(self, ctx: commands.Context):
-        if ctx.author.name in ['avaren','madroctos','voidashe','moopoke', 'sajam', 'flaskpotato'] or ctx.author.name == ctx.channel.name:
+        if ctx.author.name in ['avaren','madroctos','voidashe','moopoke', 'sajam', 'flaskpotato','kierke'] or ctx.author.name == ctx.channel.name:
             await ctx.send("pokiW")
 
     @commands.command()
@@ -207,22 +242,16 @@ class Bot(commands.Bot):
                     full_message = 'iammentallyill'
                 if ctx.channel.name == 'destiny':
                     full_message = 'yorha destiny'
-                else:
-                    await ctx.send('Please specify a player name.')
-                    return
             await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
         
     @commands.command()
-    async def lp(self, ctx: commands.Context, *, full_message = 'iammentallyill'): 
+    async def lp(self, ctx: commands.Context, *, full_message = None): 
         if ctx.channel.name in league_channels:
             if not full_message:
                 if ctx.channel.name == 'mrmouton':
                     full_message = 'iammentallyill'
                 if ctx.channel.name == 'destiny':
                     full_message = 'yorha destiny'
-                else:
-                    await ctx.send('Please specify a player name.')
-                    return
             await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
 
     @commands.command()
@@ -239,6 +268,27 @@ class Bot(commands.Bot):
     async def bingus(self, ctx: commands.Context):
         if ctx.channel.name in simple_meme_channels:
             await ctx.send(f'The current price of bingus is ${bingus_quote()}')
+
+    @commands.command()
+    async def wiki(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name in wiki_channels:
+            await ctx.send(wiki_def(full_message)[0:490])
+
+    @commands.command()
+    async def dg(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name in league_channels:
+            if 'first blood' in full_message:
+                await ctx.send(first_winrate('blood'))
+            if 'dragon' in full_message or 'drake' in full_message:
+                await ctx.send(first_winrate('drake'))
+            else:
+                await ctx.send(champ_winrate(select_champ(full_message)))
+
+    @commands.command()
+    async def dgload(self, ctx: commands.Context, *, full_message = None):
+        if ctx.channel.name in league_channels:
+            await ctx.send('Attempting to get fresh matches.')
+            load_history(full_message)
 
 
 bot = Bot()
