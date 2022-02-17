@@ -246,7 +246,7 @@ def select_champ(search_term: str):
                     selected_champ = champ
     if type(selected_champ) is list:
         selected_champ = selected_champ[0]
-    return selected_champ.title() if selected_champ else None
+    return selected_champ if selected_champ else None
 
 def diffgame(champion):
     """Get champion winrate from Kierke's API."""

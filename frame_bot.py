@@ -277,7 +277,7 @@ class Bot(commands.Bot):
     @commands.command()
     async def dg(self, ctx: commands.Context, *, full_message = None):
         if ctx.channel.name in league_channels:
-            if 'first blood' in full_message:
+            if 'blood' in full_message:
                 await ctx.send(first_winrate('blood'))
             if 'dragon' in full_message or 'drake' in full_message:
                 await ctx.send(first_winrate('drake'))
