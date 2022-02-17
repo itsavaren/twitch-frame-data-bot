@@ -37,8 +37,8 @@ Note on !fd:  for level 1/2/3 of nago/goldlewis moves, append .1 .2 .3, or .br t
 
 # differentgame.gg
 
-- **!dg [champion] provides winrate for champion on ally and enemy team (does not include stats for when moot or dest play the champ)
-- **!dg [blood] or [drake] provides winrate for moot/dest when a first blood or dragon is taken by their team.
+- **!dg [champion]** provides winrate for champion on ally and enemy team (does not include stats for when moot or dest play the champ)
+- **!dg [blood] or [drake]** provides winrate for moot/dest when a first blood or dragon is taken by their team.
 
 # Activation/Installation
 
