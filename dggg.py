@@ -24,6 +24,8 @@ def connect():
 
 def champ_winrate(champion):
     """Get the winrates of a champion."""
+    if not champion:
+        return "Champion not found."
     conn =sqlite3.connect(f'./db/match_history.db')
     cur = conn.cursor()
     cur.execute("SELECT COUNT(*) FROM matches WHERE ? IN (ally_bot, ally_jung, ally_mid, ally_sup, ally_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
@@ -221,11 +223,13 @@ def select_champ(search_term: str):
                     selected_champ = champ
     if type(selected_champ) is list:
         selected_champ = selected_champ[0]
-    return selected_champ if selected_champ else "champion not found."
+    return selected_champ.title() if selected_champ else None
 
 def diffgame(champion):
     """Get champion winrate from Kierke's API."""
-    champion = select_champ(champion).title()
+    champion = select_champ(champion)
+    if not champion:
+        return 'Champion not found.'
 
     url = f"https://differentgame.gg/api/champs.json"
     source = requests.get(url, headers={'User-agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0'}).json()
