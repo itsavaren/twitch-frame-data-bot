@@ -26,19 +26,28 @@ def champ_winrate(champion):
     """Get the winrates of a champion."""
     if not champion:
         return "Champion not found."
+
     conn =sqlite3.connect(f'./db/match_history.db')
     cur = conn.cursor()
+
+    #get total rows where champion is an ally
     cur.execute("SELECT COUNT(*) FROM matches WHERE ? IN (ally_bot, ally_jung, ally_mid, ally_sup, ally_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
     total_ally_games = cur.fetchall()[0][0]
+    #get total rows where champion is an ally and player won
     cur.execute("SELECT COUNT(*) FROM matches WHERE win=1 AND ? IN (ally_bot, ally_jung, ally_mid, ally_sup, ally_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
     won_ally_games = cur.fetchall()[0][0]
     ally_winrate = (won_ally_games / total_ally_games) * 100
+
+    #get total rows where champion is an enemy
     cur.execute("SELECT COUNT(*) FROM matches WHERE ? IN (enemy_bot, enemy_jung, enemy_mid, enemy_sup, enemy_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
     total_enemy_games = cur.fetchall()[0][0]
-    cur.execute("SELECT COUNT(*) FROM matches WHERE win=1 AND ? IN (enemy_bot, enemy_jung, enemy_mid, enemy_sup, enemy_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
+    #get total rows where champion is an enemy and player won
+    cur.execute("SELECT COUNT(*) FROM matches WHERE win=0 AND ? IN (enemy_bot, enemy_jung, enemy_mid, enemy_sup, enemy_top) AND ? NOT IN (dest_champ, moot_champ)",(champion, champion))
     won_enemy_games = cur.fetchall()[0][0]
     enemy_winrate = (won_enemy_games / total_enemy_games) * 100
+
     conn.close()
+
     return f"{champion} has a {ally_winrate:.2f}% winrate as an ally(in {total_ally_games} games), and {enemy_winrate:.2f}% winrate as an enemy(in {total_enemy_games} games)."
     
 def first_winrate(stat):
@@ -203,7 +212,7 @@ def load_history(mode: str):
             begin_index += 40
             end_index += 40
 
-def load_champs():
+def save_champs():
     with open('./db/champ_list.txt', 'w') as fp:
         champ_list = ["aatrox", "ahri", "akali", "akshan", "alistar", "amumu", "anivia", "annie", "aphelios", "ashe", "aurelion sol", "azir", "bard", "blitzcrank", "brand", "braum", "caitlyn", "camille", "cassiopeia", "cho'gath", "corki", "darius", "diana", "draven", "dr. mundo", "ekko", "elise", "evelynn", "ezreal", "fiddlesticks", "fiora", "fizz", "galio", "gangplank", "garen", "gnar", "gragas", "graves", "gwen", "hecarim", "heimerdinger", "illaoi", "irelia", "ivern", "janna", "jarvan iv", "jax", "jayce", "jhin", "jinx", "kai'sa", "kalista", "karma", "karthus", "kassadin", "katarina", "kayle", "kayn", "kennen", "kha'zix", "kindred", "kled", "kog'maw", "leblanc", "lee sin", "leona", "lillia", "lissandra", "lucian", "lulu", "lux", "malphite", "malzahar", "maokai", "master yi", "miss fortune", "wukong", "mordekaiser", "morgana", "nami", "nasus", "nautilus", "neeko", "nidalee", "nocturne", "nunu & willump", "olaf", "orianna", "ornn", "pantheon", "poppy", "pyke", "qiyana", "quinn", "rakan", "rammus", "rek'sai", "rell", "renata glasc", "renekton", "rengar", "riven", "rumble", "ryze", "samira", "sejuani", "senna", "seraphine", "sett", "shaco", "shen", "shyvana", "singed", "sion", "sivir", "skarner", "sona", "soraka", "swain", "sylas", "syndra", "tahm kench", "taliyah", "talon", "taric", "teemo", "thresh", "tristana", "trundle", "tryndamere", "twisted fate", "twitch", "udyr", "urgot", "varus", "vayne", "veigar", "vel'koz", "vex", "vi", "viego", "viktor", "vladimir", "volibear", "warwick", "xayah", "xerath", "xin zhao", "yasuo", "yone", "yorick", "yuumi", "zac", "zed", "zeri", "ziggs", "zilean", "zoe", "zyra"]
         json.dump(champ_list,fp)
