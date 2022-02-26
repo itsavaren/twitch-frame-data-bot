@@ -11,6 +11,16 @@ from songid import *
 from bingus import *
 from wiki_lookup import *
 from dggg import *
+
+# import twitchio
+# import logging
+
+# logger = logging.getLogger('twitchio')
+# logger.setLevel(logging.DEBUG)
+# handler = logging.FileHandler(filename='twitchio.log', encoding='utf-8', mode='w')
+# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+# logger.addHandler(handler)
+
 # from twitchio.ext.commands import core
 # from googletrans import Translator, constants
 # from pprint import pprint
@@ -30,7 +40,7 @@ except IndexError:
 
 #list of channels to join
 channel_names = ['avaren','sajam','akafishperson','letsdaze_','lastcody',
-'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310','destiny','notsoerudite','diaphone_']
+'redditto','romolla','leafretv','garmakilma','voidashe','abusywizard','moopoke','deyvonnn','hotashi','mrmouton','kizziekay310','destiny','notsoerudite','diaphone_','striker1014']
 
 
 fighter_channels = channel_names
@@ -101,7 +111,7 @@ class Bot(commands.Bot):
         print(f'Logged in as | {self.nick}')
 
     #ignore incorrect command errors
-    async def event_command_error(self, context: commands.Context, error: Exception):
+    async def event_command_error(self, context: commands.Context, error: commands.errors.CommandNotFound):
         pass
 
     async def event_message(self, message):
@@ -241,7 +251,7 @@ class Bot(commands.Bot):
                 if ctx.channel.name == 'mrmouton':
                     full_message = 'iammentallyill'
                 if ctx.channel.name == 'destiny':
-                    full_message = 'yorha destiny'
+                    return
             await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
         
     @commands.command()
@@ -251,7 +261,7 @@ class Bot(commands.Bot):
                 if ctx.channel.name == 'mrmouton':
                     full_message = 'iammentallyill'
                 if ctx.channel.name == 'destiny':
-                    full_message = 'yorha destiny'
+                    return
             await ctx.send(f'@{ctx.author.name} {get_rank(full_message)}')
 
     @commands.command()
@@ -267,7 +277,7 @@ class Bot(commands.Bot):
     @commands.command()
     async def bingus(self, ctx: commands.Context):
         if ctx.channel.name in simple_meme_channels:
-            await ctx.send(f'The current price of bingus is ${bingus_quote()}')
+            await ctx.send(bingus_quote())
 
     @commands.command()
     async def wiki(self, ctx: commands.Context, *, full_message = None):
@@ -281,19 +291,30 @@ class Bot(commands.Bot):
                 await ctx.send(first_winrate('blood'))
             if 'dragon' in full_message or 'drake' in full_message:
                 await ctx.send(first_winrate('drake'))
+            if 'winrate' in full_message:
+                await ctx.send(solo_duo_winrate())
             else:
                 await ctx.send(champ_winrate(select_champ(full_message)))
 
     @commands.command()
+    async def dglive(self, ctx: commands.Context):
+        if ctx.channel.name in league_channels:
+            await ctx.send(spec_check(ctx.channel.name))
+
+    @commands.command()
     async def dgload(self, ctx: commands.Context, *, full_message = None):
         if ctx.channel.name in league_channels and ctx.author.name in ['avaren','kierke']:
+            start_total = total_matches()
             await ctx.send('Attempting to get fresh matches.')
             load_history(full_message)
+            end_total = total_matches()
+            await ctx.send(f'Added {end_total - start_total} matches.')
+
 
     @commands.command()
     async def dgtotal(self, ctx: commands.Context):
         if ctx.channel.name in league_channels:
-            await ctx.send(f'Database contains{total_matches()} matches.')
+            await ctx.send(f'Database contains {total_matches()} matches.')
 
 
 bot = Bot()

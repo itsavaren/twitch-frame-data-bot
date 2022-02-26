@@ -6,3 +6,4 @@ googletrans==3.1.0a0
 streamlink
 ffmpeg-python
 ujson
+git+https://github.com/meraki-analytics/cassiopeia.git
