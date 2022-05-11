@@ -1,0 +1,29 @@
+{
+    "channel_names": [
+        "avaren",
+        "sajam"
+    ],
+    "fighter_channels": [
+        "avaren",
+        "sajam"
+    ],
+    "simple_meme_channels": [
+        "avaren",
+        "sajam"
+    ],
+    "complex_meme_channels": [
+        "avaren"
+    ],
+    "glossary_channels": [
+        "avaren"
+    ],
+    "league_channels": [
+        "avaren"
+    ],
+    "songid_channels": [
+        "avaren"
+    ],
+    "wiki_channels": [
+        "avaren"
+    ]
+}

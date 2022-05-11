@@ -1,4 +1,4 @@
-FROM python:3.9.7-slim-bullseye
+FROM python:slim
 WORKDIR /app
 RUN apt update
 RUN apt upgrade -y

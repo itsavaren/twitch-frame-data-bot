@@ -1,4 +1,5 @@
 twitchio
+pymongo
 requests
 bs4
 lxml
